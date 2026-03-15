@@ -74,41 +74,8 @@ class device:
                 self.elements.append(element(points, faces))
         
         self.el_surf_cross = np.zeros((len(self.elements), len(self.elements)))
-        self.find_elements_cross_sectional_areas()
         self.el_surf = np.array([el.surface_area for el in self.elements])
 
-    def intersect_elements(self, el1 : element, el2 : element):
-        sm = 0
-        for face1 in el1.faces:
-            for face2 in el2.faces:
-                p11 = el1.points[face1.x]
-                p12 = el1.points[face1.y]
-                p13 = el1.points[face1.z]
-                p21 = el2.points[face2.x]
-                p22 = el2.points[face2.y]
-                p23 = el2.points[face2.z]
-
-                v1 = np.sort(np.array([p11.x, p11.y, p11.z, p12.x, p12.y, p12.z, p13.x, p13.y, p13.z]))
-
-                v2 = np.sort(np.array([p21.x, p21.y, p21.z, p22.x, p22.y, p22.z, p23.x, p23.y, p23.z]))
-                
-                if np.abs(v2 - v1).max() < 1e-2:
-                    a = np.array([p12.x - p11.x, p12.y - p11.y, p12.z - p11.z])
-                    b = np.array([p13.x - p11.x, p13.y - p11.y, p13.z - p11.z])
-                    sm += (1 / 2) * np.linalg.norm(np.cross(a, b))
-
-        return sm
-
-    def find_elements_cross_sectional_areas(self):
-        for i in range(len(self.elements)):
-            for j in range(i + 1, len(self.elements)):
-                el1 = self.elements[i]
-                el2 = self.elements[j]
-                self.el_surf_cross[i][j] = self.intersect_elements(el1, el2)
-                self.el_surf_cross[j][i] = self.el_surf_cross[i][j]
-
-
-                    
 
 
 

@@ -16,7 +16,6 @@ class ode_sys_solver:
 
     def load_obj(self, obj_filename):
         d = elems.device(obj_filename)
-        self.el_surf_cross = d.el_surf_cross
         self.el_surf = d.el_surf
 
     def load_json(self, json_filename):
@@ -26,13 +25,17 @@ class ode_sys_solver:
             self.lmbda = np.array(config["constant"]["lambda"])
             self.eps = np.array(config["constant"]["eps"])
             self.func_list = config["func"]
+            self.el_surf_cross = np.array(config["constant"]["cross_surf"])
+            self.T_0 = np.array(config["constant"]["T_0"])
             
     def solve_ode(self):
-        t_eval = np.linspace(self.t_span[0], self.t_span[1], 1000)
+#        t_eval = np.linspace(self.t_span[0], self.t_span[1], 100)
+        t_eval = np.arange(self.t_span[0], self.t_span[1] + 1, 1.0)
         self.sol = solve_ivp(self.system, self.t_span, self.T_0, t_eval=t_eval, method="BDF")
+        
 
     def system(self, t, T):
-        q1 = -np.sum(self.lmbda * self.el_surf_cross * np.subtract(T, T.reshape((len(T), 1))).T, axis=1)
+        q1 = np.sum(self.lmbda * self.el_surf_cross * np.subtract(T, T.reshape((len(T), 1))).T, axis=1)
         q2 = -self.eps * self.el_surf * self.c_0 * np.pow(T / 100, 4)
         q3 = eval(self.func_list)
         return (q1 + q2 + q3) / self.c

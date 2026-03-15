@@ -8,14 +8,20 @@ from PySide6.QtWidgets import (
     QLabel,
     QVBoxLayout,
     QWidget,
-    QDoubleSpinBox
+    QDoubleSpinBox,
+    QToolBox,
+    QMenu,
+    QToolBar
 )
+from PySide6.QtGui import QAction
 from PySide6.QtCore import QTimer
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT
 from matplotlib.figure import Figure
 
 import numpy as np
+
+from PySide6.QtGui import QAction, QIcon
     
 class MplCanvas(FigureCanvas):
     def __init__(self, parent=None):
@@ -26,33 +32,44 @@ class MplCanvas(FigureCanvas):
 
 class MainWindow(QMainWindow):
     solver : compute.ode_sys_solver
-    dt = 0.1
+    dt = 1
     t = 0
-    T_0 = np.array([100, 100, 100, 100, 100])
+    obj_loaded = False
+    json_loaded = False
     def __init__(self):
         super().__init__()
         self.solver = compute.ode_sys_solver()
         self.setWindowTitle("ODE solver")
-        self.resize(800, 600)
+        self.resize(1280, 720)
         self.label = QLabel("Время теплового расчета")
+        toolbar = QToolBar("My Toolbar")
+        self.addToolBar(toolbar)
 
-        file_menu = self.menuBar().addMenu("Файл")
-        obj_open_action = file_menu.addAction("Открыть obj")
-        obj_open_action.triggered.connect(self.open_obj)
+        open_obj_action = QAction("Открыть obj", self)
+        open_obj_action.triggered.connect(self.open_obj)
+        toolbar.addAction(open_obj_action)
 
-        json_open_action = file_menu.addAction("Открыть json")
-        json_open_action.triggered.connect(self.open_json)
+        open_json_action = QAction("Открыть json", self)
+        open_json_action.triggered.connect(self.open_json)
+        toolbar.addAction(open_json_action)
 
-        self.time_edge = QDoubleSpinBox()
+        calc_action = QAction("Расчитать", self)
+        calc_action.triggered.connect(self.calculate)
+        toolbar.addAction(calc_action)
+
+        start_inf_calc_action = QAction("Начать бесконечный расчет", self)
+        start_inf_calc_action.triggered.connect(self.start_inf_calc)
+        toolbar.addAction(start_inf_calc_action)
+
+        stop_inf_calc_action = QAction("Остановить бесконечный расчет", self)
+        stop_inf_calc_action.triggered.connect(self.stop_inf_calc)
+        toolbar.addAction(stop_inf_calc_action)
+
+        self.time_edge = QDoubleSpinBox(maximum=1000)
+        
         self.time_edge.setDecimals(2)
         self.time_edge.setValue(1.0)
         
-        self.button_calc = QPushButton("Расчитать")
-        self.button_inf_calc = QPushButton("Начать бесконечный расчет")
-        self.button_stop_inf_calc = QPushButton("Остановить бесконечный расчет")
-        self.button_calc.clicked.connect(self.calculate)
-        self.button_inf_calc.clicked.connect(self.start_inf_calc)
-        self.button_stop_inf_calc.clicked.connect(self.stop_inf_calc)
 
 
         self.canvas = MplCanvas()
@@ -61,15 +78,14 @@ class MainWindow(QMainWindow):
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.inf_calc)
-
+        self.flag = True
+        self.calculated = False
         layout = QVBoxLayout()
         layout.setSpacing(10)
 
+
         layout.addWidget(self.label)
         layout.addWidget(self.time_edge)
-        layout.addWidget(self.button_calc)
-        layout.addWidget(self.button_inf_calc) 
-        layout.addWidget(self.button_stop_inf_calc)
         layout.addWidget(toolbar) 
         layout.addWidget(self.canvas)
 
@@ -81,34 +97,51 @@ class MainWindow(QMainWindow):
 
 
     def calculate(self):
-        self.solver.T_0 = self.T_0
-        self.solver.t_span = (0, self.time_edge.value())
-        self.solver.solve_ode()
-        self.canvas.ax.clear()
-        for i in range(len(self.solver.sol.y)):
-            self.canvas.ax.plot(self.solver.sol.t, self.solver.sol.y[i], label="T" + str(i + 1))
+        if self.json_loaded and self.obj_loaded:
+            self.solver.T_0 = self.T_0
+            self.solver.t_span = (0, self.time_edge.value())
+            self.solver.solve_ode()
+            
+            self.canvas.ax.clear()
+            for i in range(len(self.solver.sol.y)):
+                self.canvas.ax.plot(self.solver.sol.t, self.solver.sol.y[i], label="T" + str(i + 1))
 
-        self.canvas.draw()
+            self.canvas.ax.legend()
+            self.canvas.draw()
+            self.calculated = True
+            
         
     def start_inf_calc(self):
-        self.solver.T_0 = self.T_0
-        self.canvas.ax.clear()
-        self.timer.start(500)
+        if self.calculated:
+            self.canvas.ax.clear()
+            self.t = 0
+            self.solver.T_0 = self.T_0
+            self.calculated = False
+            self.flag = True
+        if self.json_loaded and self.obj_loaded:
+            self.timer.start(100)
 
     def stop_inf_calc(self):
-        self.timer.stop()
+        if self.json_loaded and self.obj_loaded:
+            self.timer.stop()
 
     def inf_calc(self):
-        self.solver.t_span = (self.t, self.t + self.dt)
-        self.solver.solve_ode()
-
-        self.solver.T_0 = self.solver.sol.y[:, -1]
-        self.t += self.dt
-        
-        for i in range(len(self.solver.sol.y)):
-            self.canvas.ax.plot(self.solver.sol.t, self.solver.sol.y[i], label="T" + str(i + 1))
-
-        self.canvas.draw()
+        if self.json_loaded and self.obj_loaded:
+            colors = ['g', 'r', 'k', 'b', 'y']
+            self.solver.t_span = (self.t, self.t + self.dt)
+            self.solver.solve_ode()
+    #        self.solver.T_0 = self.solver.sol.y[:, self.solver.sol.y.shape[1] // 2]
+    #        self.t += self.dt / 2
+            
+            self.solver.T_0 = self.solver.sol.y[:, -1]
+            self.t += self.dt
+            for i in range(len(self.solver.sol.y)):
+                self.canvas.ax.plot(self.solver.sol.t, self.solver.sol.y[i], label="T" + str(i + 1), color = colors[i])
+            if self.flag:
+                self.canvas.ax.legend()
+                self.flag = False
+            
+            self.canvas.draw()
 
 
     def open_obj(self):
@@ -119,6 +152,7 @@ class MainWindow(QMainWindow):
             "OBJ Files (*.obj)"
         )
         if file_path:
+            self.obj_loaded = True
             self.solver.load_obj(file_path)
 
     def open_json(self):
@@ -128,10 +162,12 @@ class MainWindow(QMainWindow):
             "",
             "json Files (*.json)"
         )
-        self.solver.T_0 = np.array([100, 100, 100, 100, 100])
         if file_path:
+            self.json_loaded = True
             self.solver.load_json(file_path)
+            self.T_0 = self.solver.T_0
     
+
 app = QApplication(sys.argv)
 window = MainWindow()
 window.show()
