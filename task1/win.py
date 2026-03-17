@@ -36,6 +36,8 @@ class MainWindow(QMainWindow):
     t = 0
     obj_loaded = False
     json_loaded = False
+    solution_y : list()
+    solution_x : list()
     def __init__(self):
         super().__init__()
         self.solver = compute.ode_sys_solver()
@@ -94,6 +96,7 @@ class MainWindow(QMainWindow):
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
+        self.count = 0
 
 
     def calculate(self):
@@ -132,11 +135,17 @@ class MainWindow(QMainWindow):
             self.solver.solve_ode()
     #        self.solver.T_0 = self.solver.sol.y[:, self.solver.sol.y.shape[1] // 2]
     #        self.t += self.dt / 2
+            self.count += 1
+
             
+            
+
             self.solver.T_0 = self.solver.sol.y[:, -1]
             self.t += self.dt
             for i in range(len(self.solver.sol.y)):
                 self.canvas.ax.plot(self.solver.sol.t, self.solver.sol.y[i], label="T" + str(i + 1), color = colors[i])
+                if self.count > 5:
+                    self.canvas.ax.set_xlim(self.count * self.dt - 4, self.count * self.dt)
             if self.flag:
                 self.canvas.ax.legend()
                 self.flag = False
