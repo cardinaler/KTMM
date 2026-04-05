@@ -11,7 +11,20 @@ names = [
     "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"
 ]
 
-# -------------------- массы (кг) --------------------
+colors = [
+    "yellow",      # Sun
+    "gray",        # Mercury
+    "orange",      # Venus
+    "blue",        # Earth
+    "red",         # Mars
+    "brown",       # Jupiter
+    "gold",        # Saturn
+    "lightblue",   # Uranus
+    "darkblue",    # Neptune
+    "purple"       # Pluto
+]
+
+# массы (кг)
 m = np.array([
     1.989e30,   # Sun
     3.285e23,   # Mercury
@@ -25,7 +38,7 @@ m = np.array([
     1.309e22    # Pluto
 ])
 
-# -------------------- начальные координаты (м) --------------------
+# начальные координаты (м) (расстояние от Солнца)
 r0 = np.array([
     [0.0, 0.0],          # Sun
     [57.91e9, 0.0],      # Mercury
@@ -39,7 +52,7 @@ r0 = np.array([
     [5906.38e9, 0.0]     # Pluto
 ])
 
-# -------------------- начальные скорости (м/с) --------------------
+# начальные скорости (м/с) 
 v0 = np.array([
     [0.0, 0.0],          # Sun 
     [0.0, 47870.0],      # Mercury
@@ -55,12 +68,13 @@ v0 = np.array([
 
 N = m.shape[0]
 # Временная сетка
+num_steps = 2000
 t0 = 0.0
 t_end = 100 * 24 * 3600 * 100
-dt = (t_end - t0) / 2000
+dt = (t_end - t0) / num_steps
 
 t = np.arange(t0, t_end + dt, dt)
-num_steps = len(t)
+
 
 
 def acceleration(r):
@@ -109,12 +123,15 @@ margin = 0.5
 ax.set_xlim(all_x.min() - margin, all_x.max() + margin)
 ax.set_ylim(all_y.min() - margin, all_y.max() + margin)
 
-scat = ax.scatter([], [], s=100)
+scat = ax.scatter(positions[0, :, 0], positions[0, :, 1], c=colors)
+for i in range(N):
+    ax.scatter([], [], c=colors[i], label=names[i])
+
 
 def update(frame):
     scat.set_offsets(positions[frame])
-
     return scat,
 
 ani = FuncAnimation(fig, update, frames=num_steps, interval=10, blit=True)
+plt.legend()
 plt.show()
