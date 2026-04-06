@@ -1,0 +1,6 @@
+task3/.vscode/settings.json
+task3/verle_cython_openmp/verlet.cpython-311-x86_64-linux-gnu.so
+task3/verle_cython_openmp/.vscode/settings.json
+task3/verle_cython_openmp/build/lib.linux-x86_64-cpython-311/verlet.cpython-311-x86_64-linux-gnu.so
+task3/verle_cython_openmp/build/temp.linux-x86_64-cpython-311/verlet.o
+task3/verle_cython_openmp/verlet.c
