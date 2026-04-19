@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from multiprocessing import Pool, cpu_count
-from verle_par import verle_par
+from verlet_par.verle_par import verle_par
 D = 2
 G = 6.67 * 1e-11
 

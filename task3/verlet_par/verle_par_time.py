@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from verle_par import verle_par
+from verlet_par.verle_par import verle_par
 import time
 
 N_ = [100, 200, 300]

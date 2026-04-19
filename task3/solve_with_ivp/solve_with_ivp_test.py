@@ -39,5 +39,4 @@ def update(frame):
     return scat,
 
 ani = FuncAnimation(fig, update, frames=num_steps, interval=10, blit=True)
-plt.legend()
 plt.show()
