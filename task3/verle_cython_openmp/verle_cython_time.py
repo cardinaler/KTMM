@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from verle import verle
+import verlet
 import time
-
+G = 6.67e-11
 N_ = [100, 200, 300]
 time_exec = list()
 rng = np.random.default_rng(42)
@@ -16,10 +16,10 @@ for i in range(len(N_)):
     num_steps = 2000
     t0 = 0.0
     t_end = 100 # 100 секунд
+    dt = (t_end - t0) / num_steps
     N = m.shape[0]
-    solver = verle()
     t1 = time.perf_counter()
-    solver.solve(t0, t_end, num_steps, m, r0, v0)
+    verlet.simulate_verlet(r0, v0, m, G, num_steps, dt)
     t2 = time.perf_counter()
     time_exec.append(t2 - t1)
 

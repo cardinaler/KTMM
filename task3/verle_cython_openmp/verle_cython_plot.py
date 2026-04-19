@@ -1,10 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from multiprocessing import Pool, cpu_count
-from verle_par import verle_par
+import verlet
+import time
 D = 2
-G = 6.67 * 1e-11
+G = 6.67e-11
 
 names = [
     "Sun", "Mercury", "Venus", "Earth", "Mars",
@@ -36,7 +36,7 @@ m = np.array([
     8.681e25,   # Uranus
     1.024e26,   # Neptune
     1.309e22    # Pluto
-])
+], dtype=np.float64)
 
 # начальные координаты (м) (расстояние от Солнца)
 r0 = np.array([
@@ -50,11 +50,12 @@ r0 = np.array([
     [2872.46e9, 0.0],    # Uranus
     [4495.06e9, 0.0],    # Neptune
     [5906.38e9, 0.0]     # Pluto
-])
+], dtype=np.float64)
+
 
 # начальные скорости (м/с) 
 v0 = np.array([
-    [0.0, 0.0],          # Sun 
+    [0.0, 0.0],          # Sun
     [0.0, 47870.0],      # Mercury
     [0.0, 35020.0],      # Venus
     [0.0, 29780.0],      # Earth
@@ -64,20 +65,23 @@ v0 = np.array([
     [0.0, 6810.0],       # Uranus
     [0.0, 5430.0],       # Neptune
     [0.0, 4740.0]        # Pluto
-])
+], dtype=np.float64)
+
 
 N = m.shape[0]
+
 # Временная сетка
 num_steps = 2000
 t0 = 0.0
-t_end = 100 * 24 * 3600 * 100
+t_end = 100 * 24 * 3600 * 100   # ~100 лет
 dt = (t_end - t0) / num_steps
-
-t = np.arange(t0, t_end + dt, dt)
+t1 = time.perf_counter()
+positions = verlet.simulate_verlet(r0, v0, m, G, num_steps, dt)
+t2 = time.perf_counter()
+print(t2 - t1)
 
 # Визуализация траекторий
-solver = verle_par()
-positions = solver.solve(t0, t_end, num_steps, m, r0, v0)
+
 fig, ax = plt.subplots(figsize=(10, 10))
 ax.grid()
 
@@ -88,6 +92,8 @@ ax.set_xlim(all_x.min() - margin, all_x.max() + margin)
 ax.set_ylim(all_y.min() - margin, all_y.max() + margin)
 
 scat = ax.scatter(positions[0, :, 0], positions[0, :, 1], c=colors)
+
+N = m.shape[0]
 for i in range(N):
     ax.scatter([], [], c=colors[i], label=names[i])
 
