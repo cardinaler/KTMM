@@ -8,9 +8,8 @@ class solve_with_ivp:
 
     G = 6.67 * 1e-11
 
-    def __init__(self, N, D):
-        self.N = N
-        self.D = D
+    def __init__(self):
+        pass
 
     def solve(self, t0, t_end, num_steps, m, r0, v0):
         N = m.shape[0]

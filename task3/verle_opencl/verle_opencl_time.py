@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from solve_with_ivp import solve_with_ivp
+from verle_opencl import verle_opencl
 import time
 
 N_ = [100, 200, 300]
@@ -17,7 +17,7 @@ for i in range(len(N_)):
     t0 = 0.0
     t_end = 100 # 100 секунд
     N = m.shape[0]
-    solver = solve_with_ivp()
+    solver = verle_opencl()
     t1 = time.perf_counter()
     solver.solve(t0, t_end, num_steps, m, r0, v0)
     t2 = time.perf_counter()
